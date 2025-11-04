@@ -2,9 +2,59 @@
 
 A command-line tool for translating text into multiple languages using OpenAI's API.
 
-## Usage
+## Quick Start
 
-### Basic Translation
+### Interactive Mode (Default)
+
+Simply run without arguments for an interactive prompt:
+
+```bash
+python -m src.translate_main
+```
+
+Example session:
+```
+🌍 Translation Tool - Interactive Mode
+========================================
+
+Enter text to translate (or 'q' to quit): Bonjour le monde
+
+Enter target languages (up to 3, space-separated):
+Examples: es fr de | ja zh ko | ru ar hi
+Languages: es de
+ℹ️  Adding English (en) as default language
+
+Translating...
+
+Detected: French
+en: Hello world
+es: Hola mundo
+de: Hallo Welt
+
+Translate another phrase? (y/n): y
+
+Enter text to translate (or 'q' to quit): こんにちは
+
+Enter target languages (up to 3, space-separated):
+Examples: es fr de | ja zh ko | ru ar hi
+Languages: es fr
+ℹ️  Adding English (en) as default language
+
+Translating...
+
+Detected: Japanese
+en: Hello
+es: Hola
+fr: Bonjour
+
+Translate another phrase? (y/n): n
+
+Goodbye! 👋
+```
+
+### Direct Mode (With Arguments)
+
+For one-off translations or scripting:
 
 ```bash
 python -m src.translate_main "Bonjour le monde" --to en es de
@@ -18,29 +68,62 @@ es: Hola mundo
 de: Hallo Welt
 ```
 
-### With Custom Model
+## Usage
+
+### Interactive Mode Features
+
+- **No arguments required** - Just run the command
+- **Sequential prompts** - Easy to follow, one step at a time
+- **English always included** - Automatically added as default language
+- **English appears first** - Standardized output ordering
+- **Max 3 languages** - Keeps costs low and output readable
+- **Input validation** - Clear error messages and retry prompts
+- **Multiple translations** - Loop to translate many phrases
+- **Quick exit** - Type 'q', 'quit', or 'exit' anytime, or Ctrl+C
+
+### Direct Mode Options
 
 ```bash
-python -m src.translate_main "Hello world" --to fr es de --model gpt-4
+python -m src.translate_main [TEXT] --to [LANG1 LANG2 ...] [OPTIONS]
 ```
 
-### Verbose Mode
+**Required:**
+- `TEXT` - Text to translate (quoted if contains spaces)
+- `--to` - Target language codes (space-separated)
 
+**Optional:**
+- `--model` - OpenAI model to use (default: gpt-4o-mini)
+- `--verbose` - Enable verbose output
+- `--help` - Show help message
+
+### Examples
+
+**Japanese to multiple languages:**
 ```bash
-python -m src.translate_main "Ciao mondo" --to en fr --verbose
+python -m src.translate_main "こんにちは世界" --to en es fr
+```
+
+**Arabic with custom model:**
+```bash
+python -m src.translate_main "مرحبا" --to en de --model gpt-4
+```
+
+**Russian with verbose output:**
+```bash
+python -m src.translate_main "Привет" --to en fr --verbose
 ```
 
 Output:
 ```
 Using model: gpt-4o-mini
-Text: Ciao mondo
+Text: Привет
 Target languages: en, fr
 
 Translating...
 
-Detected: Italian
-en: Hello world
-fr: Bonjour le monde
+Detected: Russian
+en: Hello
+fr: Bonjour
 ```
 
 ## Supported Language Codes

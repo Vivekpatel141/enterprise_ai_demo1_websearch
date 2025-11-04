@@ -148,3 +148,214 @@ def test_translate_command_with_model(mock_translation_client, capsys):
     # Verify model was passed correctly through the service layer
     mock_translation_client.translate.assert_called_once()
     assert mock_translation_client.model == "gpt-4"
+
+
+# ============================================================================
+# Interactive Mode Tests
+# ============================================================================
+
+def test_interactive_mode_single_translation():
+    """Test interactive mode with single translation then exit."""
+    from src.translate_main import interactive_mode
+    
+    # Mock user inputs: text, languages, no continue
+    with patch('builtins.input', side_effect=['Bonjour', 'es de', 'n']):
+        with patch('src.translate_main.OpenAI') as MockOpenAI:
+            with patch('src.translate_main.TranslationService') as MockService:
+                mock_service = Mock()
+                MockService.return_value = mock_service
+                
+                mock_result = TranslationResult(
+                    original_text="Bonjour",
+                    detected_language="French",
+                    translations={"en": "Hello", "es": "Hola", "de": "Hallo"}
+                )
+                mock_service.translate.return_value = mock_result
+                
+                exit_code = interactive_mode("fake-key", "gpt-4o-mini", verbose=False)
+                
+                assert exit_code == 0
+                # Verify English was added and is first
+                mock_service.translate.assert_called_once()
+                call_args = mock_service.translate.call_args
+                assert call_args[1]['targets'][0] == 'en'
+                assert 'es' in call_args[1]['targets']
+                assert 'de' in call_args[1]['targets']
+
+
+def test_interactive_mode_english_auto_added():
+    """Test that English is automatically added to target languages."""
+    from src.translate_main import ensure_english_included
+    
+    # Test adding English when not present
+    targets = ['es', 'fr', 'de']
+    result = ensure_english_included(targets)
+    assert result[0] == 'en'
+    assert 'es' in result
+    assert 'fr' in result
+    assert 'de' in result
+    
+    # Test moving English to front when present
+    targets = ['es', 'en', 'de']
+    result = ensure_english_included(targets)
+    assert result[0] == 'en'
+    assert result == ['en', 'es', 'de']
+
+
+def test_interactive_mode_max_three_languages():
+    """Test that max 3 languages are enforced in prompt."""
+    from src.translate_main import prompt_for_languages
+    
+    # Mock user input with 4 languages, should truncate to 3
+    with patch('builtins.input', return_value='es fr de it'):
+        languages = prompt_for_languages()
+        assert len(languages) <= 3
+        assert languages == ['es', 'fr', 'de']
+
+
+def test_interactive_mode_invalid_language_retry():
+    """Test that invalid language codes prompt retry."""
+    from src.translate_main import prompt_for_languages
+    
+    # First input invalid, second valid
+    with patch('builtins.input', side_effect=['xx yy', 'es fr']):
+        languages = prompt_for_languages()
+        assert languages == ['es', 'fr']
+        assert 'xx' not in languages
+
+
+def test_interactive_mode_empty_text_retry():
+    """Test that empty text prompts retry."""
+    from src.translate_main import prompt_for_text
+    
+    # First input empty, second valid
+    with patch('builtins.input', side_effect=['', '  ', 'Hello']):
+        text = prompt_for_text()
+        assert text == 'Hello'
+
+
+def test_interactive_mode_quit_command():
+    """Test that 'q' command exits gracefully."""
+    from src.translate_main import prompt_for_text
+    
+    with patch('builtins.input', return_value='q'):
+        text = prompt_for_text()
+        assert text == ''
+
+
+def test_interactive_mode_multiple_translations():
+    """Test interactive mode with multiple translation loop."""
+    from src.translate_main import interactive_mode
+    
+    # Mock inputs: text1, langs1, yes, text2, langs2, no
+    inputs = [
+        'Bonjour',  # First text
+        'es',       # First languages
+        'y',        # Continue
+        'Hello',    # Second text
+        'fr de',    # Second languages
+        'n'         # Don't continue
+    ]
+    
+    with patch('builtins.input', side_effect=inputs):
+        with patch('src.translate_main.OpenAI'):
+            with patch('src.translate_main.TranslationService') as MockService:
+                mock_service = Mock()
+                MockService.return_value = mock_service
+                
+                mock_result = TranslationResult(
+                    original_text="test",
+                    detected_language="English",
+                    translations={"en": "test", "es": "prueba"}
+                )
+                mock_service.translate.return_value = mock_result
+                
+                exit_code = interactive_mode("fake-key", "gpt-4o-mini")
+                
+                assert exit_code == 0
+                # Should have been called twice (two translations)
+                assert mock_service.translate.call_count == 2
+
+
+def test_interactive_mode_keyboard_interrupt():
+    """Test that Ctrl+C exits gracefully."""
+    from src.translate_main import interactive_mode
+    
+    with patch('builtins.input', side_effect=KeyboardInterrupt()):
+        with patch('src.translate_main.OpenAI'):
+            with patch('src.translate_main.TranslationService'):
+                exit_code = interactive_mode("fake-key", "gpt-4o-mini")
+                assert exit_code == 130
+
+
+def test_prompt_continue_yes_variants():
+    """Test that various 'yes' inputs are accepted."""
+    from src.translate_main import prompt_continue
+    
+    for yes_input in ['y', 'yes', 'Y', 'YES']:
+        with patch('builtins.input', return_value=yes_input):
+            assert prompt_continue() is True
+
+
+def test_prompt_continue_no_variants():
+    """Test that various 'no' inputs are accepted."""
+    from src.translate_main import prompt_continue
+    
+    for no_input in ['n', 'no', 'N', 'NO']:
+        with patch('builtins.input', return_value=no_input):
+            assert prompt_continue() is False
+
+
+def test_prompt_continue_invalid_then_valid():
+    """Test that invalid continue input prompts retry."""
+    from src.translate_main import prompt_continue
+    
+    with patch('builtins.input', side_effect=['maybe', 'x', 'y']):
+        assert prompt_continue() is True
+
+
+def test_main_interactive_mode_no_args():
+    """Test that main() enters interactive mode when no args provided."""
+    from src.translate_main import main
+    
+    with patch('sys.argv', ['translate_main']):
+        with patch('src.translate_main.interactive_mode', return_value=0) as mock_interactive:
+            with patch.dict(os.environ, {'OPENAI_API_KEY': 'fake-key'}):
+                exit_code = main()
+                
+                assert exit_code == 0
+                mock_interactive.assert_called_once()
+
+
+def test_main_direct_mode_with_args():
+    """Test that main() uses direct mode when args provided."""
+    from src.translate_main import main
+    
+    with patch('sys.argv', ['translate_main', 'Hello', '--to', 'es']):
+        with patch('src.translate_main.OpenAI'):
+            with patch('src.translate_main.TranslationService') as MockService:
+                with patch.dict(os.environ, {'OPENAI_API_KEY': 'fake-key'}):
+                    mock_service = Mock()
+                    MockService.return_value = mock_service
+                    
+                    mock_result = TranslationResult(
+                        original_text="Hello",
+                        detected_language="English",
+                        translations={"es": "Hola"}
+                    )
+                    mock_service.translate.return_value = mock_result
+                    
+                    exit_code = main()
+                    
+                    assert exit_code == 0
+                    mock_service.translate.assert_called_once()
+
+
+def test_main_text_without_to_flag_error():
+    """Test that providing text without --to flag shows helpful error."""
+    from src.translate_main import main
+    
+    with patch('sys.argv', ['translate_main', 'Hello']):
+        with patch.dict(os.environ, {'OPENAI_API_KEY': 'fake-key'}):
+            exit_code = main()
+            assert exit_code == 1
