@@ -8,12 +8,13 @@ Imagine you're building a house. Before you start construction, you need bluepri
 In software, these blueprints are called "data models" - they define the shape and
 structure of the information flowing through your application.
 
-This is where our story begins. We'll create five essential blueprints:
+This is where our story begins. We'll create six essential blueprints:
 1. SearchOptions - What the user wants to search for (the request)
 2. Citation - Where information came from (the evidence)
 3. Source - Which websites were consulted (the references)
 4. SearchResult - The complete answer (the response)
 5. SearchError - When things go wrong (the exception handling)
+6. TranslationResult - Multi-language translation results
 
 LEARNING OBJECTIVES:
 -------------------
@@ -27,6 +28,40 @@ LEARNING OBJECTIVES:
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, List, Dict, Any
+
+# ============================================================================
+# BLUEPRINT 6: TranslationResult - Multi-language Translation Results
+# ============================================================================
+
+@dataclass
+class TranslationResult:
+    """
+    Represents the result of a translation operation with language detection.
+
+    📚 CONCEPT: Multi-language Support
+    ---------------------------------
+    This model handles both language detection and translation:
+    - Detects the source language automatically
+    - Stores translations for multiple target languages
+    - Maintains original text for reference
+
+    EXAMPLE USAGE:
+    >>> result = TranslationResult(
+    ...     original_text="Bonjour le monde",
+    ...     detected_language="French",
+    ...     translations={"en": "Hello world", "es": "Hola mundo"}
+    ... )
+    >>> print(result.translations["en"])  # "Hello world"
+    """
+    
+    # The original text to be translated
+    original_text: str
+    
+    # The detected source language
+    detected_language: str
+    
+    # Dictionary mapping language codes to translations
+    translations: Dict[str, str]
 
 
 # ============================================================================
