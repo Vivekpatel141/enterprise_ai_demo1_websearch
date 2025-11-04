@@ -66,7 +66,7 @@ class TranslationClient:
         # 4) Last-resort
         return str(resp)
 
-    def translate(self, *, text: str, targets: List[str]) -> TranslationResult:
+    def translate(self, text: str = None, *, targets: List[str]) -> TranslationResult:
         """
         Detect language of `text` and translate into each language in `targets`.
 
@@ -76,10 +76,14 @@ class TranslationClient:
           "detected_language": "English",
           "translations": { "en": "Hello world", ... }
         }
+        
+        Args:
+            text: Text to translate (can be positional or keyword)
+            targets: List of target language codes (keyword-only)
         """
         user_prompt = (
             f'Text: "{text}"\n'
-            f"Targets (space-separated codes): {' '.join(targets)}"
+            f"Targets (space-separated codes): {', '.join(targets)}"
         )
 
         resp = self.client.responses.create(
