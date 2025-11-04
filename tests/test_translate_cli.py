@@ -158,8 +158,8 @@ def test_interactive_mode_single_translation():
     """Test interactive mode with single translation then exit."""
     from src.translate_main import interactive_mode
     
-    # Mock user inputs: text, languages, no continue
-    with patch('builtins.input', side_effect=['Bonjour', 'es de', 'n']):
+    # Mock user inputs: text, languages (full names), no continue
+    with patch('builtins.input', side_effect=['Bonjour', 'spanish german', 'n']):
         with patch('src.translate_main.OpenAI') as MockOpenAI:
             with patch('src.translate_main.TranslationService') as MockService:
                 mock_service = Mock()
@@ -206,19 +206,19 @@ def test_interactive_mode_max_three_languages():
     """Test that max 3 languages are enforced in prompt."""
     from src.translate_main import prompt_for_languages
     
-    # Mock user input with 4 languages, should truncate to 3
-    with patch('builtins.input', return_value='es fr de it'):
+    # Mock user input with 4 languages (full names), should truncate to 3
+    with patch('builtins.input', return_value='spanish french german italian'):
         languages = prompt_for_languages()
         assert len(languages) <= 3
         assert languages == ['es', 'fr', 'de']
 
 
 def test_interactive_mode_invalid_language_retry():
-    """Test that invalid language codes prompt retry."""
+    """Test that invalid language names prompt retry."""
     from src.translate_main import prompt_for_languages
     
-    # First input invalid, second valid
-    with patch('builtins.input', side_effect=['xx yy', 'es fr']):
+    # First input invalid, second valid (full names)
+    with patch('builtins.input', side_effect=['klingon elvish', 'spanish french']):
         languages = prompt_for_languages()
         assert languages == ['es', 'fr']
         assert 'xx' not in languages
@@ -247,14 +247,14 @@ def test_interactive_mode_multiple_translations():
     """Test interactive mode with multiple translation loop."""
     from src.translate_main import interactive_mode
     
-    # Mock inputs: text1, langs1, yes, text2, langs2, no
+    # Mock inputs: text1, langs1 (full names), yes, text2, langs2 (full names), no
     inputs = [
-        'Bonjour',  # First text
-        'es',       # First languages
-        'y',        # Continue
-        'Hello',    # Second text
-        'fr de',    # Second languages
-        'n'         # Don't continue
+        'Bonjour',      # First text
+        'spanish',      # First languages
+        'y',            # Continue
+        'Hello',        # Second text
+        'french german',  # Second languages
+        'n'             # Don't continue
     ]
     
     with patch('builtins.input', side_effect=inputs):

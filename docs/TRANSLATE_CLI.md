@@ -20,8 +20,8 @@ Example session:
 Enter text to translate (or 'q' to quit): Bonjour le monde
 
 Enter target languages (up to 3, space-separated):
-Examples: es fr de | ja zh ko | ru ar hi
-Languages: es de
+Examples: Spanish French German | Japanese Chinese Korean | Russian Arabic Hindi
+Languages: Spanish German
 ℹ️  Adding English (en) as default language
 
 Translating...
@@ -36,8 +36,8 @@ Translate another phrase? (y/n): y
 Enter text to translate (or 'q' to quit): こんにちは
 
 Enter target languages (up to 3, space-separated):
-Examples: es fr de | ja zh ko | ru ar hi
-Languages: es fr
+Examples: Spanish French German | Japanese Chinese Korean | Russian Arabic Hindi
+Languages: Spanish French
 ℹ️  Adding English (en) as default language
 
 Translating...
@@ -73,10 +73,13 @@ de: Hallo Welt
 ### Interactive Mode Features
 
 - **No arguments required** - Just run the command
+- **Full language names** - Type "Spanish", "French", "German" (not codes)
+- **Case insensitive** - "spanish" or "Spanish" both work
 - **Sequential prompts** - Easy to follow, one step at a time
 - **English always included** - Automatically added as default language
 - **English appears first** - Standardized output ordering
 - **Max 3 languages** - Keeps costs low and output readable
+- **Helpful suggestions** - Invalid names show full list of available languages
 - **Input validation** - Clear error messages and retry prompts
 - **Multiple translations** - Loop to translate many phrases
 - **Quick exit** - Type 'q', 'quit', or 'exit' anytime, or Ctrl+C
@@ -126,36 +129,29 @@ en: Hello
 fr: Bonjour
 ```
 
-## Supported Language Codes
+## Supported Languages
 
-- **en** - English
-- **es** - Spanish  
-- **de** - German
-- **fr** - French
-- **it** - Italian
-- **pt** - Portuguese
-- **zh** - Chinese
-- **ja** - Japanese
-- **ko** - Korean
-- **ru** - Russian
-- **ar** - Arabic
-- **hi** - Hindi
-- **nl** - Dutch
-- **sv** - Swedish
-- **no** - Norwegian
-- **da** - Danish
-- **fi** - Finnish
-- **pl** - Polish
-- **cs** - Czech
-- **tr** - Turkish
-- **el** - Greek
-- **he** - Hebrew
-- **th** - Thai
-- **vi** - Vietnamese
-- **id** - Indonesian
-- **ro** - Romanian
-- **bg** - Bulgarian
-- **uk** - Ukrainian
+You can use any of these language names in interactive mode (case-insensitive):
+
+- **English**, **Spanish**, **German**, **French**
+- **Italian**, **Portuguese**, **Chinese**, **Japanese**
+- **Korean**, **Russian**, **Arabic**, **Hindi**
+- **Dutch**, **Swedish**, **Norwegian**, **Danish**
+- **Finnish**, **Polish**, **Czech**, **Turkish**
+- **Greek**, **Hebrew**, **Thai**, **Vietnamese**
+- **Indonesian**, **Romanian**, **Bulgarian**, **Ukrainian**
+
+### Language Codes (For Direct Mode)
+
+When using direct mode with `--to` flag, you can still use short codes:
+
+- **en** - English, **es** - Spanish, **de** - German, **fr** - French
+- **it** - Italian, **pt** - Portuguese, **zh** - Chinese, **ja** - Japanese
+- **ko** - Korean, **ru** - Russian, **ar** - Arabic, **hi** - Hindi
+- **nl** - Dutch, **sv** - Swedish, **no** - Norwegian, **da** - Danish
+- **fi** - Finnish, **pl** - Polish, **cs** - Czech, **tr** - Turkish
+- **el** - Greek, **he** - Hebrew, **th** - Thai, **vi** - Vietnamese
+- **id** - Indonesian, **ro** - Romanian, **bg** - Bulgarian, **uk** - Ukrainian
 
 ## Environment Variables
 

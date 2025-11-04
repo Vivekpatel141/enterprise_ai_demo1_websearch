@@ -27,6 +27,20 @@ setup_logging(
     json_format=os.getenv("LOG_FORMAT", "text").lower() == "json",
 )
 
+# Language name to code mapping
+LANGUAGE_MAP = {
+    'english': 'en', 'spanish': 'es', 'german': 'de', 'french': 'fr',
+    'italian': 'it', 'portuguese': 'pt', 'chinese': 'zh', 'japanese': 'ja',
+    'korean': 'ko', 'russian': 'ru', 'arabic': 'ar', 'hindi': 'hi',
+    'dutch': 'nl', 'swedish': 'sv', 'norwegian': 'no', 'danish': 'da',
+    'finnish': 'fi', 'polish': 'pl', 'czech': 'cs', 'turkish': 'tr',
+    'greek': 'el', 'hebrew': 'he', 'thai': 'th', 'vietnamese': 'vi',
+    'indonesian': 'id', 'romanian': 'ro', 'bulgarian': 'bg', 'ukrainian': 'uk'
+}
+
+# Reverse mapping: code to name
+CODE_TO_NAME = {code: name.title() for name, code in LANGUAGE_MAP.items()}
+
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command-line arguments for translation."""
@@ -92,40 +106,48 @@ def prompt_for_text() -> str:
 
 def prompt_for_languages() -> list[str]:
     """
-    Prompt user for target languages (max 3).
+    Prompt user for target languages (max 3) using full language names.
     Returns list of valid language codes.
     """
-    allowed = {
-        "en", "es", "de", "fr", "it", "pt", "zh", "ja", "ko", "ru", "ar", "hi",
-        "nl", "sv", "no", "da", "fi", "pl", "cs", "tr", "el", "he", "th", "vi",
-        "id", "ro", "bg", "uk"
-    }
-    
     while True:
         print("\nEnter target languages (up to 3, space-separated):")
-        print("Examples: es fr de | ja zh ko | ru ar hi")
+        print("Examples: Spanish French German | Japanese Chinese Korean | Russian Arabic Hindi")
         lang_input = input("Languages: ").strip().lower()
         
         if not lang_input:
-            print("⚠️  Please enter at least one language code.")
+            print("⚠️  Please enter at least one language name.")
             continue
         
-        # Parse input
-        languages = lang_input.split()
+        # Parse input - split by spaces
+        language_names = lang_input.split()
         
-        # Validate codes
-        invalid = [lang for lang in languages if lang not in allowed]
+        # Convert names to codes
+        codes = []
+        invalid = []
+        for name in language_names:
+            if name in LANGUAGE_MAP:
+                codes.append(LANGUAGE_MAP[name])
+            else:
+                invalid.append(name)
+        
+        # Show invalid languages with suggestions
         if invalid:
-            print(f"⚠️  Invalid language code(s): {', '.join(invalid)}")
-            print(f"Valid codes: {', '.join(sorted(allowed))}")
+            print(f"⚠️  Invalid language name(s): {', '.join(invalid)}")
+            print(f"\nAvailable languages:")
+            # Show in columns for readability
+            sorted_langs = sorted(LANGUAGE_MAP.keys())
+            for i in range(0, len(sorted_langs), 4):
+                row = sorted_langs[i:i+4]
+                print(f"  {', '.join(name.title() for name in row)}")
             continue
         
         # Enforce max 3
-        if len(languages) > 3:
-            print(f"⚠️  Maximum 3 languages allowed. Using first 3: {', '.join(languages[:3])}")
-            languages = languages[:3]
+        if len(codes) > 3:
+            kept_names = [CODE_TO_NAME[codes[i]].lower() for i in range(3)]
+            print(f"⚠️  Maximum 3 languages allowed. Using first 3: {', '.join(kept_names)}")
+            codes = codes[:3]
         
-        return languages
+        return codes
 
 
 def ensure_english_included(targets: list[str]) -> list[str]:
